@@ -1,101 +1,97 @@
-async function initWebGPU() {
-  if (!navigator.gpu) {
-    document.getElementById('output').innerText = 'WebGPU not supported!';
-    return;
-  }
+const wgsl = `
+@group( 0 ) @binding( 0 ) var<storage, read> input: array<f32>;
+@group( 0 ) @binding( 1 ) var<storage, read_write> result: f32;
 
-  const adapter = await navigator.gpu.requestAdapter();
-  const device = await adapter.requestDevice();
+@compute
+@workgroup_size(1)
+fn sum() {
 
-  // Data: two arrays to add
-  const size = 16;
-  const arrayA = new Float32Array(size).fill(1);
-  const arrayB = new Float32Array(size).fill(2);
-  const resultBufferSize = size * Float32Array.BYTES_PER_ELEMENT;
+    for ( var i = 0u; i < arrayLength( &input ); i++ ) {
 
-  // Create GPU buffers
-  const gpuBufferA = device.createBuffer({
-    size: arrayA.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  });
-  const gpuBufferB = device.createBuffer({
-    size: arrayB.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  });
-  const gpuResultBuffer = device.createBuffer({
-    size: resultBufferSize,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-  });
-  const readBuffer = device.createBuffer({
-    size: resultBufferSize,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-  });
-
-  // Write data to GPU buffers
-  device.queue.writeBuffer(gpuBufferA, 0, arrayA.buffer, arrayA.byteOffset, arrayA.byteLength);
-  device.queue.writeBuffer(gpuBufferB, 0, arrayB.buffer, arrayB.byteOffset, arrayB.byteLength);
-
-  // Compute shader code (WGSL)
-  const shaderCode = `
-    @group(0) @binding(0) var<storage, read> a : array<f32>;
-    @group(0) @binding(1) var<storage, read> b : array<f32>;
-    @group(0) @binding(2) var<storage, write> result : array<f32>;
-
-    @compute @workgroup_size(64)
-    fn main(@builtin(global_invocation_id) global_id : vec3<u32>) {
-      let index = global_id.x;
-      if (index < arrayLength(&a)) {
-        result[index] = a[index] + b[index];
-      }
+        result += input[ i ];
     }
-  `;
-
-  // Create shader module
-  const shaderModule = device.createShaderModule({ code: shaderCode });
-
-  // Create pipeline
-  const computePipeline = device.createComputePipeline({
-    layout: 'auto',
-    compute: {
-      module: shaderModule,
-      entryPoint: 'main'
-    }
-  });
-
-  // Bind group
-  const bindGroup = device.createBindGroup({
-    layout: computePipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: gpuBufferA } },
-      { binding: 1, resource: { buffer: gpuBufferB } },
-      { binding: 2, resource: { buffer: gpuResultBuffer } },
-    ],
-  });
-
-  // Encode commands
-  const commandEncoder = device.createCommandEncoder();
-  const passEncoder = commandEncoder.beginComputePass();
-  passEncoder.setPipeline(computePipeline);
-  passEncoder.setBindGroup(0, bindGroup);
-  const workgroupCount = Math.ceil(size / 64);
-  passEncoder.dispatchWorkgroups(workgroupCount);
-  passEncoder.end();
-
-  // Copy result to read buffer
-  commandEncoder.copyBufferToBuffer(gpuResultBuffer, 0, readBuffer, 0, resultBufferSize);
-
-  // Submit commands
-  const gpuCommands = commandEncoder.finish();
-  device.queue.submit([gpuCommands]);
-
-  // Read buffer
-  await readBuffer.mapAsync(GPUMapMode.READ);
-  const arrayBuffer = readBuffer.getMappedRange();
-  const resultArray = new Float32Array(arrayBuffer.slice(0));
-  readBuffer.unmap();
-
-  // Display result
-  document.getElementById('output').innerText = 'Result: ' + resultArray.join(', ');
 }
+`
 
-initWebGPU();
+const adapter = await navigator.gpu.requestAdapter()
+const device = await adapter.requestDevice()
+const shaderModule = device.createShaderModule( { code: wgsl } )
+
+const inputData = new Float32Array( [ 1, 2, 3, 4, 5 ] )
+
+const inputBuffer = device.createBuffer( {
+    size: inputData.byteLength,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
+} )
+
+const arrayBuffer = inputBuffer.getMappedRange()
+new Float32Array( arrayBuffer ).set( inputData )
+inputBuffer.unmap()
+
+const resultBuffer = device.createBuffer( {
+    size: 4,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+} )
+
+const stagingBuffer = device.createBuffer( {
+    size: 4,
+    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
+} )
+
+const bindGroupLayout = device.createBindGroupLayout( {
+    entries: [
+        {
+            binding: 0,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: "read-only-storage" }
+        },
+        {
+            binding: 1,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: "storage" }
+        },
+    ],
+} )
+
+const bindGroup = device.createBindGroup( {
+    layout: bindGroupLayout,
+    entries: [
+        {
+            binding: 0,
+            resource: { buffer: inputBuffer }
+        },
+        {
+            binding: 1,
+            resource: { buffer: resultBuffer }
+        },
+    ],
+} )
+
+const computePipeline = device.createComputePipeline( {
+    layout: device.createPipelineLayout( {
+        bindGroupLayouts: [ bindGroupLayout, ]
+    } ),
+    compute: {
+        module: shaderModule,
+    },
+} )
+
+const commandEncoder = device.createCommandEncoder()
+
+const passEncoder = commandEncoder.beginComputePass()
+passEncoder.setPipeline( computePipeline )
+passEncoder.setBindGroup( 0, bindGroup )
+passEncoder.dispatchWorkgroups( 1 )
+passEncoder.end()
+
+commandEncoder.copyBufferToBuffer( resultBuffer, 0, stagingBuffer, 0, 4 )
+
+device.queue.submit( [ commandEncoder.finish() ] )
+
+await stagingBuffer.mapAsync( GPUMapMode.READ )
+const resultArrayBuffer = stagingBuffer.getMappedRange()
+const result = new Float32Array( resultArrayBuffer )[ 0 ]
+stagingBuffer.unmap()
+
+console.log( result ) // 15
