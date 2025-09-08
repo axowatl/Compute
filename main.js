@@ -1,3 +1,5 @@
+import { ComputeShader, ComputeBuffer } from "./Compute.js";
+
 const wgsl = `
 @group( 0 ) @binding( 0 ) var<storage, read> input: array<f32>;
 @group( 0 ) @binding( 1 ) var<storage, read_write> result: f32;
@@ -13,10 +15,12 @@ fn sum() {
 }
 `
 
+/*
 const adapter = await navigator.gpu.requestAdapter()
 const device = await adapter.requestDevice()
 const shaderModule = device.createShaderModule( { code: wgsl } )
 console.log(shaderModule)
+*/
 
 const inputData = new Float32Array( [ 1, 2, 3, 4, 5 ] )
 
