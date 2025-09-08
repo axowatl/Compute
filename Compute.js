@@ -104,7 +104,7 @@ export class ComputeShader {
 		const result = new Float32Array(resultArrayBuffer.slice()); // clone if needed
 		stagingBuffer.buffer.unmap();
 
-		return result; // or result[0] if scalar
+		return result[0]; // or result[0] if scalar
 	}
 }
 

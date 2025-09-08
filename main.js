@@ -27,4 +27,4 @@ resultBuffer.setBindings(1, 1);
 
 const results = await cShader.Dispatch("sum", [inputBuffer, resultBuffer], resultBuffer, stagingBuffer);
 
-console.log( results[0] ) // 15
+console.log( results ) // 15
