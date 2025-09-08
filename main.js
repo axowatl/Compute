@@ -4,8 +4,7 @@ const wgsl = `
 @group( 0 ) @binding( 0 ) var<storage, read> input: array<f32>;
 @group( 0 ) @binding( 1 ) var<storage, read_write> result: f32;
 
-@compute
-@workgroup_size(1)
+@compute @workgroup_size(1)
 fn sum() {
 
     for ( var i = 0u; i < arrayLength( &input ); i++ ) {
@@ -61,6 +60,8 @@ const stagingBuffer = device.createBuffer( {
 inputBuffer.setBindings(0, 0);
 resultBuffer.setBindings(1, 1);
 
+const results = cShader.Dispatch("sum", [inputBuffer, resultBuffer], resultBuffer, stagingBuffer);
+
 /*
 const bindGroupLayout = device.createBindGroupLayout( {
     entries: [
@@ -78,6 +79,7 @@ const bindGroupLayout = device.createBindGroupLayout( {
 } )
 */
 
+/*
 const bindGroup = device.createBindGroup( {
     layout: bindGroupLayout,
     entries: [
@@ -117,5 +119,6 @@ await stagingBuffer.mapAsync( GPUMapMode.READ )
 const resultArrayBuffer = stagingBuffer.getMappedRange()
 const result = new Float32Array( resultArrayBuffer )[ 0 ]
 stagingBuffer.unmap()
+*/
 
-console.log( result ) // 15
+console.log( results ) // 15
