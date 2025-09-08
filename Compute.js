@@ -95,14 +95,14 @@ export class ComputeShader {
 
 		await device.queue.onSubmittedWorkDone();
 
-		commandEncoder.copyBufferToBuffer( resultBuffer, 0, stagingBuffer, 0, 4 )
+		commandEncoder.copyBufferToBuffer( resultBuffer.buffer, 0, stagingBuffer.buffer, 0, 4 )
 
 		device.queue.submit( [ commandEncoder.finish() ] )
 
-		await stagingBuffer.mapAsync( GPUMapMode.READ )
-		const resultArrayBuffer = stagingBuffer.getMappedRange()
-		const result = new Float32Array( resultArrayBuffer )[ 0 ]
-		stagingBuffer.unmap()
+		await stagingBuffer.buffer.mapAsync( GPUMapMode.READ )
+		const resultArrayBuffer = stagingBuffer.buffer.getMappedRange()
+		const result = new Float32Array( resultArrayBuffer.buffer )[ 0 ]
+		stagingBuffer.buffer.unmap()
 		return result;
 	}
 }
