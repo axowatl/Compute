@@ -16,6 +16,7 @@ fn sum() {
 const adapter = await navigator.gpu.requestAdapter()
 const device = await adapter.requestDevice()
 const shaderModule = device.createShaderModule( { code: wgsl } )
+console.log(shaderModule)
 
 const inputData = new Float32Array( [ 1, 2, 3, 4, 5 ] )
 
