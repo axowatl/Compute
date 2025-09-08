@@ -75,7 +75,7 @@ export class ComputeShader {
 			bindGroupLayouts: [bindGroupLayout],
 		});
 
-		cp = device.createComputePipeline({
+		const cp = device.createComputePipeline({
 			layout: pipelineLayout,
 			compute: {
 				module: this.shaderModule,
