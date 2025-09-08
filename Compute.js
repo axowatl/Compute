@@ -87,7 +87,7 @@ export class ComputeShader {
 		const passEncoder = commandEncoder.beginComputePass();
 		passEncoder.setPipeline(cp);
 		passEncoder.setBindGroup(0, bindGroup);
-		passEncoder.dispatchWorkgroups(64, 1, 1); // Consider passing workgroup counts as parameters
+		passEncoder.dispatchWorkgroups(1, 1, 1); // Consider passing workgroup counts as parameters
 		passEncoder.end();
 
 		device.queue.submit([commandEncoder.finish()]);
@@ -99,12 +99,11 @@ export class ComputeShader {
 		readEncoder.copyBufferToBuffer(resultBuffer.buffer, 0, stagingBuffer.buffer, 0, stagingBuffer.buffer.size);
 		device.queue.submit([readEncoder.finish()]);
 
-		await stagingBuffer.buffer.mapAsync(GPUMapMode.READ);
-		const resultArrayBuffer = stagingBuffer.buffer.getMappedRange();
-		const result = new Float32Array(resultArrayBuffer.slice()); // clone if needed
-		stagingBuffer.buffer.unmap();
-
-		return result[0]; // or result[0] if scalar
+		await stagingBuffer.buffer.mapAsync( GPUMapMode.READ )
+		const resultArrayBuffer = stagingBuffer.buffer.getMappedRange()
+		const result = new Float32Array( resultArrayBuffer.buffer )[ 0 ]
+		stagingBuffer.buffer.unmap()
+		return result;
 	}
 }
 
