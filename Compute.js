@@ -85,25 +85,26 @@ export class ComputeShader {
 
 		const commandEncoder = device.createCommandEncoder();
 		const passEncoder = commandEncoder.beginComputePass();
-		passEncoder.setPipeline(cp)
-
+		passEncoder.setPipeline(cp);
 		passEncoder.setBindGroup(0, bindGroup);
-		passEncoder.dispatchWorkgroups(64, 1, 1);
+		passEncoder.dispatchWorkgroups(64, 1, 1); // Consider passing workgroup counts as parameters
 		passEncoder.end();
 
-		await device.queue.submit([commandEncoder.finish()]);
+		device.queue.submit([commandEncoder.finish()]);
 
 		await device.queue.onSubmittedWorkDone();
 
-		commandEncoder.copyBufferToBuffer( resultBuffer.buffer, 0, stagingBuffer.buffer, 0, 4 )
+		// Read back the result
+		const readEncoder = device.createCommandEncoder();
+		readEncoder.copyBufferToBuffer(resultBuffer.buffer, 0, stagingBuffer.buffer, 0, stagingBuffer.buffer.size);
+		device.queue.submit([readEncoder.finish()]);
 
-		device.queue.submit( [ commandEncoder.finish() ] )
+		await stagingBuffer.buffer.mapAsync(GPUMapMode.READ);
+		const resultArrayBuffer = stagingBuffer.buffer.getMappedRange();
+		const result = new Float32Array(resultArrayBuffer.slice()); // clone if needed
+		stagingBuffer.buffer.unmap();
 
-		await stagingBuffer.buffer.mapAsync( GPUMapMode.READ )
-		const resultArrayBuffer = stagingBuffer.buffer.getMappedRange()
-		const result = new Float32Array( resultArrayBuffer.buffer )[ 0 ]
-		stagingBuffer.buffer.unmap()
-		return result;
+		return result; // or result[0] if scalar
 	}
 }
 
