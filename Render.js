@@ -96,6 +96,7 @@ export class MeshRenderer {
         };
 
         const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+        passEncoder.setViewport(0, 0, canvas.width, canvas.height, 0, 1);
         passEncoder.setPipeline(this.pipeline);
         passEncoder.setVertexBuffer(0, this.vertexBuffer);
         passEncoder.setIndexBuffer(this.indexBuffer, "uint32");
