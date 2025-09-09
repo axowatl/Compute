@@ -1,5 +1,5 @@
-import { MeshRenderer } from "./Render";
-import { Material } from "./Material";
+import { MeshRenderer } from "./Render.js";
+import { Material } from "./Material.js";
 
 async function main() {
     // Check for WebGPU support
