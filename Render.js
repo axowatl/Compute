@@ -32,9 +32,10 @@ export class MeshRenderer {
         // Create index buffer
         this.indexBuffer = this.device.createBuffer({
             label: "Mesh Indices",
-            size: this.indices.byteLength,
+            size: this.indices.length * 4,
             usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
         });
+        // Number of bytes to write must be a multiple of 4
         this.device.queue.writeBuffer(this.indexBuffer, 0, this.indices);
     }
 
