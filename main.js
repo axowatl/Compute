@@ -34,7 +34,7 @@ async function main() {
     ]);
 
     // Indices for the triangle
-    const indices = new Uint16Array([0, 1, 2]);
+    const indices = new Uint32Array([0, 1, 2]);
 
     // Create material with basic shaders
     const vertexShaderCode = `

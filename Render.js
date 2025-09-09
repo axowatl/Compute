@@ -2,7 +2,7 @@ export class MeshRenderer {
     /**
      * 
      * @param {Float32Array} vertices - The vertices for the mesh.
-     * @param {Uint16Array} indices - The indices that make up the triangles.
+     * @param {Uint32Array} indices - The indices that make up the triangles.
      * @param {Material} material - The material for rendering (to be implemented).
      * @param {GPUDevice} device - The WebGPU device.
      * @param {GPUCanvasContext} context - The WebGPU context for rendering.
