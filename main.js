@@ -12,8 +12,16 @@ async function initWebGPU() {
     const device = await adapter.requestDevice();
 
     // 2. Configure the canvas
+    /**
+     * @type {HTMLCanvasElement}
+     */
     const canvas = document.getElementById("webgpu-canvas");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
     const context = canvas.getContext("webgpu");
+    
     const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
     context.configure({
         device,
@@ -124,14 +132,6 @@ async function initWebGPU() {
 
 // Run the main function
 initWebGPU().catch(console.error);
-
-// Handle window resizing
-window.addEventListener("resize", () => {
-    const canvas = document.getElementById("webgpu-canvas");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
-window.dispatchEvent(new Event("resize"));
 
 
 /*
