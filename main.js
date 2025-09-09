@@ -128,8 +128,8 @@ initWebGPU().catch(console.error);
 // Handle window resizing
 window.addEventListener("resize", () => {
     const canvas = document.getElementById("webgpu-canvas");
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 });
 window.dispatchEvent(new Event("resize"));
 
