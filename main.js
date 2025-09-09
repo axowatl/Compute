@@ -47,7 +47,7 @@ async function main() {
     const fragmentShaderCode = `
         @fragment
         fn fs_main() -> @location(0) vec4<f32> {
-            return vec4<f32>(0.0, 0.5, 1.0, 1.0); // blue color
+            return vec4<f32>(0.0, 0.0, 1.0, 1.0); // blue color
         }
     `;
 

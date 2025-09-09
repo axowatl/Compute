@@ -14,7 +14,7 @@ export class Material {
      * Creates shader modules from the WGSL code.
      * @param {GPUDevice} device
      */
-    createShaderModules(device) {
+    async createShaderModules(device) {
         this.shaderModuleVertex = device.createShaderModule({
             code: this.vertexShaderCode,
         });
