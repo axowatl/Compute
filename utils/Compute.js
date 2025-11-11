@@ -1,18 +1,4 @@
-//#region Top
-// Ensure this is inside an async function or top-level await
-if (!navigator.gpu) {
-	throw Error("WebGPU not supported.");
-}
-
-/** @type {GPUAdapter} */
-const adapter = await navigator.gpu.requestAdapter();
-if (!adapter) {
-	throw Error("Couldn't request WebGPU adapter.");
-}
-
-/** @type {GPUDevice} */
-const device = await adapter.requestDevice();
-//#endregion Top
+import { device } from "./constants";
 
 /**
  * Represents a compute shader module.
